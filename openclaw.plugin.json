@@ -1,0 +1,70 @@
+{
+  "id": "memory-muninndb",
+  "kind": "memory",
+  "name": "Memory (MuninnDB)",
+  "description": "Cognitive memory powered by MuninnDB — Ebbinghaus decay, Hebbian learning, and semantic activation for AI agents",
+  "uiHints": {
+    "baseUrl": {
+      "label": "MuninnDB URL",
+      "placeholder": "http://127.0.0.1:8476",
+      "help": "Base URL of the MuninnDB server"
+    },
+    "token": {
+      "label": "API Token",
+      "sensitive": true,
+      "placeholder": "(optional — leave empty if auth is disabled)",
+      "help": "Bearer token for MuninnDB authentication"
+    },
+    "vault": {
+      "label": "Vault",
+      "placeholder": "openclaw",
+      "help": "MuninnDB vault name to use for this agent's memories"
+    },
+    "autoCapture": {
+      "label": "Auto-Capture",
+      "help": "Automatically capture important information from conversations"
+    },
+    "autoRecall": {
+      "label": "Auto-Recall",
+      "help": "Automatically inject relevant memories into agent context before each turn"
+    },
+    "syncFiles": {
+      "label": "Sync Memory Files",
+      "help": "Sync MEMORY.md and memory/*.md files to MuninnDB as engrams"
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "baseUrl": {
+        "type": "string"
+      },
+      "token": {
+        "type": "string"
+      },
+      "vault": {
+        "type": "string"
+      },
+      "autoCapture": {
+        "type": "boolean"
+      },
+      "autoRecall": {
+        "type": "boolean"
+      },
+      "syncFiles": {
+        "type": "boolean"
+      },
+      "activateThreshold": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "maxResults": {
+        "type": "number",
+        "minimum": 1,
+        "maximum": 50
+      }
+    }
+  }
+}
