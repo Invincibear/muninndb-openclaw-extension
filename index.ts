@@ -129,6 +129,22 @@ class MuninnClient {
     return res.json() as Promise<WriteResponse>;
   }
 
+  async findByTags(tags: string[], limit = 10): Promise<{ engrams: Array<{ id: string; concept: string; tags: string[] }> }> {
+    const params = new URLSearchParams({
+      vault: this.vault,
+      tags: tags.join(","),
+      limit: String(limit),
+    });
+    const res = await fetch(`${this.baseUrl}/api/engrams?${params}`, {
+      headers: this.headers(),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) {
+      throw new Error(`MuninnDB findByTags failed (${res.status}): ${await res.text()}`);
+    }
+    return res.json() as Promise<{ engrams: Array<{ id: string; concept: string; tags: string[] }> }>;
+  }
+
   async evolve(id: string, newContent: string, reason: string): Promise<void> {
     const res = await fetch(
       `${this.baseUrl}/api/engrams/${encodeURIComponent(id)}/evolve?vault=${encodeURIComponent(this.vault)}`,
@@ -611,9 +627,20 @@ export default definePluginEntry({
 
               const chunks = chunkMarkdown(content, filePath);
               for (const chunk of chunks) {
-                // Add content hash to tags for dedup — MuninnDB can use this
                 const chunkHash = contentHash(chunk.content);
                 const tags = [...chunk.tags, `hash:${chunkHash}`];
+
+                // Check if engram with this hash already exists in MuninnDB
+                try {
+                  const existing = await client.findByTags([`hash:${chunkHash}`], 1);
+                  if (existing.engrams && existing.engrams.length > 0) {
+                    // Already exists — skip
+                    continue;
+                  }
+                } catch {
+                  // If lookup fails, write anyway (safer than skipping)
+                }
+
                 await client.write(chunk.concept, chunk.content, tags);
                 // Rate limit: delay between writes to avoid 429s
                 await new Promise((r) => setTimeout(r, 250));
