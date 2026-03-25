@@ -4,13 +4,30 @@
   "description": "OpenClaw memory plugin backed by MuninnDB — cognitive memory with Ebbinghaus decay, Hebbian learning, and semantic activation",
   "type": "module",
   "license": "MIT",
-  "keywords": ["openclaw", "muninndb", "memory", "plugin", "cognitive"],
+  "keywords": [
+    "openclaw",
+    "muninndb",
+    "memory",
+    "plugin",
+    "cognitive"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/Invincibear/muninndb-openclaw-extension"
   },
+  "scripts": {
+    "format": "prettier --write \"**/*.{ts,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,json,md}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.1",
+    "typescript": "^5.8.3"
+  },
   "openclaw": {
-    "extensions": ["./index.ts"]
+    "extensions": [
+      "./index.ts"
+    ]
   },
   "peerDependencies": {
     "openclaw": ">=2026.3.22"

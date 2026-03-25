@@ -7,7 +7,7 @@ OpenClaw memory plugin backed by [MuninnDB](https://muninndb.com) — cognitive 
 Replaces OpenClaw's default file-based memory search with MuninnDB's cognitive memory engine:
 
 - **`memory_search`** → MuninnDB `activate` (semantic recall with decay + Hebbian boosting)
-- **`memory_get`** → Direct file read (unchanged — reads MEMORY.md / memory/*.md)
+- **`memory_get`** → Direct file read (unchanged — reads MEMORY.md / memory/\*.md)
 - **`memory_store`** → Write engrams to MuninnDB (explicit memory storage)
 - **`memory_forget`** → Soft-delete engrams from MuninnDB
 
@@ -42,7 +42,7 @@ Add to your `openclaw.json`:
 {
   plugins: {
     slots: {
-      memory: "memory-muninndb"
+      memory: "memory-muninndb",
     },
     entries: {
       "memory-muninndb": {
@@ -50,15 +50,15 @@ Add to your `openclaw.json`:
           baseUrl: "http://127.0.0.1:8476",
           // token: "your-api-key",  // optional if auth is disabled
           vault: "openclaw",
-          autoRecall: true,          // inject relevant memories into context
-          autoCapture: false,        // auto-capture user messages (experimental)
-          syncFiles: true,           // sync MEMORY.md + memory/*.md to MuninnDB
-          activateThreshold: 0.3,    // minimum relevance score
-          maxResults: 6              // max results per search
-        }
-      }
-    }
-  }
+          autoRecall: true, // inject relevant memories into context
+          autoCapture: false, // auto-capture user messages (experimental)
+          syncFiles: true, // sync MEMORY.md + memory/*.md to MuninnDB
+          activateThreshold: 0.3, // minimum relevance score
+          maxResults: 6, // max results per search
+        },
+      },
+    },
+  },
 }
 ```
 
@@ -78,12 +78,15 @@ openclaw muninndb sync
 ## How It Works
 
 ### File Sync
+
 When `syncFiles` is enabled, the plugin watches `MEMORY.md` and `memory/*.md` files in your workspace. Changes are chunked by markdown headings and written to MuninnDB as engrams tagged with `openclaw-sync`.
 
 ### Auto-Recall
+
 When `autoRecall` is enabled, the plugin injects relevant memories from MuninnDB into the agent's context before each turn. This happens transparently — the agent sees memories as `<relevant-memories>` context blocks.
 
 ### Auto-Capture
+
 When `autoCapture` is enabled, the plugin analyzes user messages for important information (preferences, decisions, facts) and stores them in MuninnDB automatically.
 
 ## License

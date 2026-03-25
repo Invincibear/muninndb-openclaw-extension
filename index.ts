@@ -94,10 +94,7 @@ class MuninnClient {
     return h;
   }
 
-  async activate(
-    context: string[],
-    opts?: { threshold?: number; maxResults?: number },
-  ): Promise<ActivateResponse> {
+  async activate(context: string[], opts?: { threshold?: number; maxResults?: number }): Promise<ActivateResponse> {
     const res = await fetch(`${this.baseUrl}/api/activate?vault=${encodeURIComponent(this.vault)}`, {
       method: "POST",
       headers: this.headers(),
@@ -129,7 +126,10 @@ class MuninnClient {
     return res.json() as Promise<WriteResponse>;
   }
 
-  async findByTags(tags: string[], limit = 10): Promise<{ engrams: Array<{ id: string; concept: string; tags: string[] }> }> {
+  async findByTags(
+    tags: string[],
+    limit = 10,
+  ): Promise<{ engrams: Array<{ id: string; concept: string; tags: string[] }> }> {
     const params = new URLSearchParams({
       vault: this.vault,
       tags: tags.join(","),
@@ -175,10 +175,10 @@ class MuninnClient {
   }
 
   async stats(): Promise<StatsResponse> {
-    const res = await fetch(
-      `${this.baseUrl}/api/stats?vault=${encodeURIComponent(this.vault)}`,
-      { headers: this.headers(), signal: AbortSignal.timeout(10_000) },
-    );
+    const res = await fetch(`${this.baseUrl}/api/stats?vault=${encodeURIComponent(this.vault)}`, {
+      headers: this.headers(),
+      signal: AbortSignal.timeout(10_000),
+    });
     if (!res.ok) {
       throw new Error(`MuninnDB stats failed (${res.status}): ${await res.text()}`);
     }
@@ -195,7 +195,10 @@ class MuninnClient {
     return res.json() as Promise<{ status: string; version: string }>;
   }
 
-  async listEngrams(limit = 100, offset = 0): Promise<{ engrams: Array<{ id: string; concept: string; content: string; tags: string[] }>; total: number }> {
+  async listEngrams(
+    limit = 100,
+    offset = 0,
+  ): Promise<{ engrams: Array<{ id: string; concept: string; content: string; tags: string[] }>; total: number }> {
     const res = await fetch(
       `${this.baseUrl}/api/engrams?vault=${encodeURIComponent(this.vault)}&limit=${limit}&offset=${offset}`,
       { headers: this.headers(), signal: AbortSignal.timeout(15_000) },
@@ -203,7 +206,10 @@ class MuninnClient {
     if (!res.ok) {
       throw new Error(`MuninnDB listEngrams failed (${res.status}): ${await res.text()}`);
     }
-    return res.json() as Promise<{ engrams: Array<{ id: string; concept: string; content: string; tags: string[] }>; total: number }>;
+    return res.json() as Promise<{
+      engrams: Array<{ id: string; concept: string; content: string; tags: string[] }>;
+      total: number;
+    }>;
   }
 }
 
@@ -233,10 +239,14 @@ function findMemoryFiles(workspace: string): string[] {
           const full = join(memoryDir, entry);
           try {
             if (statSync(full).isFile()) files.push(full);
-          } catch { /* skip */ }
+          } catch {
+            /* skip */
+          }
         }
       }
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
 
   return files;
@@ -345,29 +355,33 @@ export default definePluginEntry({
             }));
 
             return {
-              content: [{
-                type: "text",
-                text: JSON.stringify({
-                  results,
-                  provider: "muninndb",
-                  totalFound: result.total_found,
-                  latencyMs: result.latency_ms,
-                }),
-              }],
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    results,
+                    provider: "muninndb",
+                    totalFound: result.total_found,
+                    latencyMs: result.latency_ms,
+                  }),
+                },
+              ],
             };
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
             api.logger.warn(`memory-muninndb: search failed: ${msg}`);
             return {
-              content: [{
-                type: "text",
-                text: JSON.stringify({
-                  results: [],
-                  provider: "muninndb",
-                  error: msg,
-                  disabled: true,
-                }),
-              }],
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    results: [],
+                    provider: "muninndb",
+                    error: msg,
+                    disabled: true,
+                  }),
+                },
+              ],
             };
           }
         },
@@ -387,14 +401,21 @@ export default definePluginEntry({
         parameters: {
           type: "object",
           properties: {
-            path: { type: "string", description: "File path relative to workspace (e.g. MEMORY.md, memory/2026-03-24.md)" },
+            path: {
+              type: "string",
+              description: "File path relative to workspace (e.g. MEMORY.md, memory/2026-03-24.md)",
+            },
             from: { type: "number", description: "Start line (1-indexed)" },
             lines: { type: "number", description: "Number of lines to read" },
           },
           required: ["path"],
         },
         async execute(_toolCallId, params) {
-          const { path: filePath, from, lines } = params as {
+          const {
+            path: filePath,
+            from,
+            lines,
+          } = params as {
             path: string;
             from?: number;
             lines?: number;
@@ -402,13 +423,14 @@ export default definePluginEntry({
 
           // Security: only allow memory files
           const normalized = filePath.replace(/^\.\//, "");
-          if (
-            normalized !== "MEMORY.md" &&
-            !normalized.startsWith("memory/") &&
-            !normalized.startsWith("memory\\")
-          ) {
+          if (normalized !== "MEMORY.md" && !normalized.startsWith("memory/") && !normalized.startsWith("memory\\")) {
             return {
-              content: [{ type: "text", text: JSON.stringify({ error: "Path must be MEMORY.md or memory/*.md", path: filePath }) }],
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({ error: "Path must be MEMORY.md or memory/*.md", path: filePath }),
+                },
+              ],
             };
           }
 
@@ -461,7 +483,10 @@ export default definePluginEntry({
         parameters: {
           type: "object",
           properties: {
-            concept: { type: "string", description: "Short label for this memory (e.g. 'user-preference', 'project-decision')" },
+            concept: {
+              type: "string",
+              description: "Short label for this memory (e.g. 'user-preference', 'project-decision')",
+            },
             content: { type: "string", description: "The information to remember" },
             tags: { type: "array", items: { type: "string" }, description: "Optional tags for categorization" },
           },
@@ -477,14 +502,16 @@ export default definePluginEntry({
           try {
             const result = await client.write(concept, content, tags ?? []);
             return {
-              content: [{
-                type: "text",
-                text: JSON.stringify({
-                  stored: true,
-                  id: result.id,
-                  concept,
-                }),
-              }],
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({
+                    stored: true,
+                    id: result.id,
+                    concept,
+                  }),
+                },
+              ],
             };
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
@@ -575,113 +602,117 @@ export default definePluginEntry({
       if (globalAny[syncLockKey]) {
         api.logger.info("memory-muninndb: sync already active from another agent, skipping");
       } else {
-      globalAny[syncLockKey] = true;
+        globalAny[syncLockKey] = true;
 
-      // Track synced file hashes — persisted to disk so restarts don't re-sync
-      const stateDir = process.env.OPENCLAW_STATE_DIR ?? join(process.env.HOME ?? "", ".openclaw");
-      const hashStatePath = join(stateDir, "muninndb-sync-hashes.json");
-      
-      // Load persisted hashes
-      let syncedHashes = new Map<string, string>();
-      try {
-        if (existsSync(hashStatePath)) {
-          const saved = JSON.parse(readFileSync(hashStatePath, "utf-8"));
-          if (saved && typeof saved === "object") {
-            syncedHashes = new Map(Object.entries(saved));
-          }
-        }
-      } catch {
-        // Start fresh if corrupt
-      }
+        // Track synced file hashes — persisted to disk so restarts don't re-sync
+        const stateDir = process.env.OPENCLAW_STATE_DIR ?? join(process.env.HOME ?? "", ".openclaw");
+        const hashStatePath = join(stateDir, "muninndb-sync-hashes.json");
 
-      const persistHashes = () => {
+        // Load persisted hashes
+        let syncedHashes = new Map<string, string>();
         try {
-          const { writeFileSync, mkdirSync } = require("node:fs") as typeof import("node:fs");
-          mkdirSync(stateDir, { recursive: true });
-          writeFileSync(hashStatePath, JSON.stringify(Object.fromEntries(syncedHashes), null, 2));
-        } catch { /* best effort */ }
-      };
-
-      let syncInProgress = false;
-
-      const syncMemoryFiles = async (workspace: string) => {
-        if (syncInProgress) return;
-        syncInProgress = true;
-
-        try {
-          const files = findMemoryFiles(workspace);
-          let synced = 0;
-          let skipped = 0;
-
-          for (const filePath of files) {
-            try {
-              const content = readFileSync(filePath, "utf-8");
-              const hash = contentHash(content);
-              const relPath = relative(workspace, filePath);
-
-              // Skip if unchanged since last sync
-              if (syncedHashes.get(relPath) === hash) {
-                skipped++;
-                continue;
-              }
-
-              const chunks = chunkMarkdown(content, filePath);
-              for (const chunk of chunks) {
-                const chunkHash = contentHash(chunk.content);
-                const tags = [...chunk.tags, `hash:${chunkHash}`];
-
-                // Check if engram with this hash already exists in MuninnDB
-                try {
-                  const existing = await client.findByTags([`hash:${chunkHash}`], 1);
-                  if (existing.engrams && existing.engrams.length > 0) {
-                    // Already exists — skip
-                    continue;
-                  }
-                } catch {
-                  // If lookup fails, write anyway (safer than skipping)
-                }
-
-                await client.write(chunk.concept, chunk.content, tags);
-                // Rate limit: delay between writes to avoid 429s
-                await new Promise((r) => setTimeout(r, 250));
-              }
-
-              syncedHashes.set(relPath, hash);
-              synced++;
-            } catch (err) {
-              api.logger.warn(`memory-muninndb: failed to sync ${filePath}: ${err instanceof Error ? err.message : String(err)}`);
+          if (existsSync(hashStatePath)) {
+            const saved = JSON.parse(readFileSync(hashStatePath, "utf-8"));
+            if (saved && typeof saved === "object") {
+              syncedHashes = new Map(Object.entries(saved));
             }
           }
-
-          if (synced > 0) {
-            persistHashes();
-            api.logger.info(`memory-muninndb: synced ${synced} files (${skipped} unchanged)`);
-          }
-        } finally {
-          syncInProgress = false;
+        } catch {
+          // Start fresh if corrupt
         }
-      };
 
-      // Initial sync on startup
-      const workspace = process.env.OPENCLAW_WORKSPACE ?? join(process.env.HOME ?? "", ".openclaw", "workspace");
-      setTimeout(() => syncMemoryFiles(workspace), 5_000);
+        const persistHashes = () => {
+          try {
+            const { writeFileSync, mkdirSync } = require("node:fs") as typeof import("node:fs");
+            mkdirSync(stateDir, { recursive: true });
+            writeFileSync(hashStatePath, JSON.stringify(Object.fromEntries(syncedHashes), null, 2));
+          } catch {
+            /* best effort */
+          }
+        };
 
-      // Watch for changes (poll-based, simpler than fs.watch for cross-platform)
-      const SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-      const syncTimer = setInterval(() => syncMemoryFiles(workspace), SYNC_INTERVAL_MS);
+        let syncInProgress = false;
 
-      // Clean up on stop
-      api.registerService({
-        id: "memory-muninndb-sync",
-        start: () => {
-          api.logger.info("memory-muninndb: file sync service started");
-        },
-        stop: () => {
-          clearInterval(syncTimer);
-          globalAny[syncLockKey] = false;
-          api.logger.info("memory-muninndb: file sync service stopped");
-        },
-      });
+        const syncMemoryFiles = async (workspace: string) => {
+          if (syncInProgress) return;
+          syncInProgress = true;
+
+          try {
+            const files = findMemoryFiles(workspace);
+            let synced = 0;
+            let skipped = 0;
+
+            for (const filePath of files) {
+              try {
+                const content = readFileSync(filePath, "utf-8");
+                const hash = contentHash(content);
+                const relPath = relative(workspace, filePath);
+
+                // Skip if unchanged since last sync
+                if (syncedHashes.get(relPath) === hash) {
+                  skipped++;
+                  continue;
+                }
+
+                const chunks = chunkMarkdown(content, filePath);
+                for (const chunk of chunks) {
+                  const chunkHash = contentHash(chunk.content);
+                  const tags = [...chunk.tags, `hash:${chunkHash}`];
+
+                  // Check if engram with this hash already exists in MuninnDB
+                  try {
+                    const existing = await client.findByTags([`hash:${chunkHash}`], 1);
+                    if (existing.engrams && existing.engrams.length > 0) {
+                      // Already exists — skip
+                      continue;
+                    }
+                  } catch {
+                    // If lookup fails, write anyway (safer than skipping)
+                  }
+
+                  await client.write(chunk.concept, chunk.content, tags);
+                  // Rate limit: delay between writes to avoid 429s
+                  await new Promise((r) => setTimeout(r, 250));
+                }
+
+                syncedHashes.set(relPath, hash);
+                synced++;
+              } catch (err) {
+                api.logger.warn(
+                  `memory-muninndb: failed to sync ${filePath}: ${err instanceof Error ? err.message : String(err)}`,
+                );
+              }
+            }
+
+            if (synced > 0) {
+              persistHashes();
+              api.logger.info(`memory-muninndb: synced ${synced} files (${skipped} unchanged)`);
+            }
+          } finally {
+            syncInProgress = false;
+          }
+        };
+
+        // Initial sync on startup
+        const workspace = process.env.OPENCLAW_WORKSPACE ?? join(process.env.HOME ?? "", ".openclaw", "workspace");
+        setTimeout(() => syncMemoryFiles(workspace), 5_000);
+
+        // Watch for changes (poll-based, simpler than fs.watch for cross-platform)
+        const SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+        const syncTimer = setInterval(() => syncMemoryFiles(workspace), SYNC_INTERVAL_MS);
+
+        // Clean up on stop
+        api.registerService({
+          id: "memory-muninndb-sync",
+          start: () => {
+            api.logger.info("memory-muninndb: file sync service started");
+          },
+          stop: () => {
+            clearInterval(syncTimer);
+            globalAny[syncLockKey] = false;
+            api.logger.info("memory-muninndb: file sync service stopped");
+          },
+        });
       } // end singleton else block
     }
 
