@@ -820,10 +820,12 @@ export default definePluginEntry({
           .description("Search MuninnDB memories")
           .argument("<query>", "Search query")
           .option("--limit <n>", "Max results", "6")
-          .action(async (query: string, opts: { limit: string }) => {
+          .action(async (query: unknown, opts: unknown) => {
+            const q = String(query);
+            const o = opts as { limit?: string };
             try {
-              const result = await client.activate([query], {
-                maxResults: parseInt(opts.limit),
+              const result = await client.activate([q], {
+                maxResults: parseInt(o.limit ?? "6"),
                 threshold: cfg.activateThreshold,
               });
               if (result.activations.length === 0) {
