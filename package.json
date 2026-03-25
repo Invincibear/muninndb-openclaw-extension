@@ -21,6 +21,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "openclaw": "^2026.3.23-2",
     "prettier": "^3.8.1",
     "typescript": "^5.8.3"
   },

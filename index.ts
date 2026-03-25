@@ -315,6 +315,7 @@ export default definePluginEntry({
     api.registerTool(
       {
         name: "memory_search",
+        label: "Memory Search",
         description:
           "Semantically search long-term memory via MuninnDB. Returns memories that are contextually relevant, weighted by recency (Ebbinghaus decay) and usage frequency (Hebbian learning). Use for prior work, decisions, dates, people, preferences, or todos.",
         parameters: {
@@ -341,6 +342,7 @@ export default definePluginEntry({
 
             if (result.activations.length === 0) {
               return {
+                details: {} as never,
                 content: [{ type: "text", text: JSON.stringify({ results: [], provider: "muninndb" }) }],
               };
             }
@@ -355,6 +357,7 @@ export default definePluginEntry({
             }));
 
             return {
+              details: {} as never,
               content: [
                 {
                   type: "text",
@@ -371,6 +374,7 @@ export default definePluginEntry({
             const msg = err instanceof Error ? err.message : String(err);
             api.logger.warn(`memory-muninndb: search failed: ${msg}`);
             return {
+              details: {} as never,
               content: [
                 {
                   type: "text",
@@ -396,6 +400,7 @@ export default definePluginEntry({
     api.registerTool(
       {
         name: "memory_get",
+        label: "Memory Get",
         description:
           "Read a specific memory file by path (MEMORY.md or memory/*.md) with optional line range. Use after memory_search to pull full context from a specific file.",
         parameters: {
@@ -425,6 +430,7 @@ export default definePluginEntry({
           const normalized = filePath.replace(/^\.\//, "");
           if (normalized !== "MEMORY.md" && !normalized.startsWith("memory/") && !normalized.startsWith("memory\\")) {
             return {
+              details: {} as never,
               content: [
                 {
                   type: "text",
@@ -441,6 +447,7 @@ export default definePluginEntry({
 
             if (!existsSync(fullPath)) {
               return {
+                details: {} as never,
                 content: [{ type: "text", text: JSON.stringify({ text: "", path: normalized }) }],
               };
             }
@@ -458,11 +465,13 @@ export default definePluginEntry({
             }
 
             return {
+              details: {} as never,
               content: [{ type: "text", text: JSON.stringify({ text, path: normalized }) }],
             };
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
             return {
+              details: {} as never,
               content: [{ type: "text", text: JSON.stringify({ error: msg, path: filePath }) }],
             };
           }
@@ -478,6 +487,7 @@ export default definePluginEntry({
     api.registerTool(
       {
         name: "memory_store",
+        label: "Memory Store",
         description:
           "Store important information in MuninnDB long-term memory. Use for preferences, decisions, facts, or anything worth remembering across sessions.",
         parameters: {
@@ -502,6 +512,7 @@ export default definePluginEntry({
           try {
             const result = await client.write(concept, content, tags ?? []);
             return {
+              details: {} as never,
               content: [
                 {
                   type: "text",
@@ -517,6 +528,7 @@ export default definePluginEntry({
             const msg = err instanceof Error ? err.message : String(err);
             api.logger.warn(`memory-muninndb: store failed: ${msg}`);
             return {
+              details: {} as never,
               content: [{ type: "text", text: JSON.stringify({ stored: false, error: msg }) }],
             };
           }
@@ -532,6 +544,7 @@ export default definePluginEntry({
     api.registerTool(
       {
         name: "memory_forget",
+        label: "Memory Forget",
         description: "Remove a specific memory from MuninnDB by its ID.",
         parameters: {
           type: "object",
@@ -546,11 +559,13 @@ export default definePluginEntry({
           try {
             await client.forget(id);
             return {
+              details: {} as never,
               content: [{ type: "text", text: JSON.stringify({ forgotten: true, id }) }],
             };
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
             return {
+              details: {} as never,
               content: [{ type: "text", text: JSON.stringify({ forgotten: false, error: msg }) }],
             };
           }
